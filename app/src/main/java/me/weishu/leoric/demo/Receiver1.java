@@ -24,6 +24,6 @@ import android.content.Intent;
 public class Receiver1 extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        // 这里不是什么也没有做吗？
     }
 }

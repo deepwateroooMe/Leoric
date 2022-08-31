@@ -42,8 +42,8 @@ public class LeoricProcessImpl implements ILeoricProcess {
     private final static String OBSERVER_PERSISTENT_FILENAME = "observer_p";
     private final static String OBSERVER_DAEMON_ASSISTANT_FILENAME = "observer_d";
 
-    private IBinder mRemote;
-    private Parcel mServiceData;
+    private IBinder mRemote; // AMS 跨进程远程服务的IBinder
+    private Parcel mServiceData; // 想要启动的服务的可跨进程传送的数据
 
     private int mPid = Process.myPid();
 
@@ -55,14 +55,14 @@ public class LeoricProcessImpl implements ILeoricProcess {
     @Override
     public void onPersistentCreate(final Context context, LeoricConfigs configs) {
 
-        initAmsBinder();
-        initServiceParcel(context, configs.DAEMON_ASSISTANT_CONFIG.serviceName);
-        startServiceByAmsBinder();
+        initAmsBinder(); // 先拿到远程服务AMS的IBinder
+        initServiceParcel(context, configs.DAEMON_ASSISTANT_CONFIG.serviceName); // 将要绑定的服务以可跨进程数据的方式将数据先写好初始化好
+        startServiceByAmsBinder(); // 一切准备就绪了，就以跨进程数据交互的方式去绑定跨进程远程服务AMS吧
 
         Thread t = new Thread() {
             public void run() {
                 File indicatorDir = context.getDir(INDICATOR_DIR_NAME, Context.MODE_PRIVATE);
-                new NativeLeoric().doDaemon(
+                new NativeLeoric().doDaemon( // 去调用底层jni层native方法 doDaemon(...)来实现生成多个地鼠，赶不尽杀不绝。。。
                         new File(indicatorDir, INDICATOR_PERSISTENT_FILENAME).getAbsolutePath(),
                         new File(indicatorDir, INDICATOR_DAEMON_ASSISTANT_FILENAME).getAbsolutePath(),
                         new File(indicatorDir, OBSERVER_PERSISTENT_FILENAME).getAbsolutePath(),
@@ -80,7 +80,7 @@ public class LeoricProcessImpl implements ILeoricProcess {
         initAmsBinder();
         initServiceParcel(context, configs.PERSISTENT_CONFIG.serviceName);
         startServiceByAmsBinder();
-
+// 开启一个线程：调用底层方法加速生成地鼠，并通过文件(锁？)机制实现四个进程每三个铁三角？
         Thread t = new Thread() {
             public void run() {
                 File indicatorDir = context.getDir(INDICATOR_DIR_NAME, Context.MODE_PRIVATE);
@@ -90,18 +90,15 @@ public class LeoricProcessImpl implements ILeoricProcess {
                         new File(indicatorDir, OBSERVER_DAEMON_ASSISTANT_FILENAME).getAbsolutePath(),
                         new File(indicatorDir, OBSERVER_PERSISTENT_FILENAME).getAbsolutePath());
             }
-
-            ;
         };
         t.start();
-
     }
 
 
     @Override
     public void onDaemonDead() {
         Log.i(TAG, "on daemon dead!");
-        if (startServiceByAmsBinder()) {
+        if (startServiceByAmsBinder()) { // 继续尝试启动进程：若能调用远程服务成功，就自杀
 
             int pid = Process.myPid();
             Log.i(TAG, "mPid: " + mPid + " current pid: " + pid);
@@ -110,14 +107,14 @@ public class LeoricProcessImpl implements ILeoricProcess {
     }
 
 
-    private void initAmsBinder() {
+    private void initAmsBinder() { // 通过反射机制，初始化拿到AMS的远程服务绑定IBinder
         Class<?> activityManagerNative;
         try {
             activityManagerNative = Class.forName("android.app.ActivityManagerNative");
-            Object amn = activityManagerNative.getMethod("getDefault").invoke(activityManagerNative);
-            Field mRemoteField = amn.getClass().getDeclaredField("mRemote");
+            Object amn = activityManagerNative.getMethod("getDefault").invoke(activityManagerNative); // ??? invoke() 这里读得好昏呀。。。
+            Field mRemoteField = amn.getClass().getDeclaredField("mRemote"); 
             mRemoteField.setAccessible(true);
-            mRemote = (IBinder) mRemoteField.get(amn);
+            mRemote = (IBinder) mRemoteField.get(amn); // AMS 跨进程远程服务的IBinder
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -134,7 +131,7 @@ public class LeoricProcessImpl implements ILeoricProcess {
         Parcel parcel = Parcel.obtain();
         intent.writeToParcel(parcel, 0);
 
-        mServiceData = Parcel.obtain();
+        mServiceData = Parcel.obtain(); // <<<<<<<<<<<<<<<<<<<< 
         if (Build.VERSION.SDK_INT >= 26) {
             // Android 8.1
             mServiceData.writeInterfaceToken("android.app.IActivityManager");
@@ -142,7 +139,7 @@ public class LeoricProcessImpl implements ILeoricProcess {
             mServiceData.writeInt(1);
             intent.writeToParcel(mServiceData, 0);
             mServiceData.writeString(null);
-            mServiceData.writeInt(context.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.O ? 1 : 0);
+            mServiceData.writeInt(context.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.O ? 1 : 0); // 这个版本前后的区别是 ？
             mServiceData.writeString(context.getPackageName());
             mServiceData.writeInt(0);
         } else {
@@ -192,12 +189,11 @@ public class LeoricProcessImpl implements ILeoricProcess {
 //            mRemote.transact(26, mServiceData, null, 1);//START_SERVICE_TRANSACTION = 34
             mRemote.transact(code, mServiceData, null, 1);//START_SERVICE_TRANSACTION = 34
             return true;
-        } catch (RemoteException e) {
+        } catch (RemoteException e) { // 跨进程远程服务交互，一定要捕获异常
             e.printStackTrace();
             return false;
         }
     }
-
 
     private boolean initIndicatorFiles(Context context) {
         File dirFile = context.getDir(INDICATOR_DIR_NAME, Context.MODE_PRIVATE);

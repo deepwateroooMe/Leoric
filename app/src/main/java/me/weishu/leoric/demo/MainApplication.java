@@ -28,6 +28,7 @@ public class MainApplication extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        // 这里感觉像是双守护进程的样子，反正是有两个应用，两个进程
         Leoric.init(base, new LeoricConfigs(
                 new LeoricConfigs.LeoricConfig(
                         getPackageName() + ":resident",

@@ -19,6 +19,7 @@ package me.weishu.leoric;
 import android.content.Context;
 import android.os.Build;
 
+// 定义的是进程间公认的接口，方便进程间通信，像是IPC
 public interface ILeoricProcess {
 	/**
 	 * Initialization some files or other when 1st time 
@@ -42,9 +43,9 @@ public interface ILeoricProcess {
 	void onDaemonDead();
 
 	
-	class Fetcher {
+	class Fetcher { // interface内部类，是当public static 用吗？感觉像是
 
-		private static volatile ILeoricProcess mDaemonStrategy;
+		private static volatile ILeoricProcess mDaemonStrategy; // <<<<<<<<<< 
 
 		/**
 		 * fetch the strategy for this device
@@ -56,7 +57,7 @@ public interface ILeoricProcess {
 				return mDaemonStrategy;
 			}
 			int sdk = Build.VERSION.SDK_INT;
-			mDaemonStrategy = new LeoricProcessImpl();
+			mDaemonStrategy = new LeoricProcessImpl(); // 实现类的具体实例
 			return mDaemonStrategy;
 		}
 	}

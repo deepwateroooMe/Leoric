@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="me.weishu.leoric.demo">
 
+    <!-- 用前台服务就需要有许可 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
@@ -10,7 +11,8 @@
         android:label="Leoric"
         android:supportsRtl="true"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity
+
+      <activity
             android:name="MainActivity"
             android:label="Leoric"
             android:theme="@android:style/Theme.NoTitleBar">
@@ -25,8 +27,9 @@
         <activity android:name=".Activity1" android:process=":resident" />
 
         <receiver android:name="Receiver2" android:process="android.media" />
-        <activity android:name="Activity2" android:process="android.media" />
         <service android:name="Service2" android:process="android.media" />
+        <activity android:name="Activity2" android:process="android.media" />
+
     </application>
 
 </manifest>

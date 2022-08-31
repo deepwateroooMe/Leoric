@@ -36,10 +36,10 @@
 
 #define	DAEMON_CALLBACK_NAME		"onDaemonDead"
 
-void waitfor_self_observer(char *observer_file_path) {
+void waitfor_self_observer(char * observer_file_path) {
     int lockFileDescriptor = open(observer_file_path, O_RDONLY);
     if (lockFileDescriptor == -1) {
-        LOGE("Watched >>>>OBSERVER<<<< has been ready before watching...");
+        LOGE("Watched >>>> OBSERVER <<<< has been ready before watching...");
         return;
     }
 
@@ -49,7 +49,7 @@ void waitfor_self_observer(char *observer_file_path) {
         return;
     }
     int maskStrLength = 7 + 10 + 1;
-    char *p_maskStr = malloc(maskStrLength);
+    char * p_maskStr = malloc(maskStrLength);
     if (p_maskStr == NULL) {
         free(p_buf);
         LOGE("malloc failed !!!");
@@ -191,11 +191,11 @@ Java_me_weishu_leoric_NativeLeoric_doDaemon(JNIEnv *env, jobject jobj,
     if ((pid = fork()) < 0) {
         printf("fork 1 error\n");
         exit(-1);
-    } else if (pid == 0) { //第一个子进程
+    } else if (pid == 0) { // 第一个子进程, < 0 执行子进程
         if ((pid = fork()) < 0) {
             printf("fork 2 error\n");
             exit(-1);
-        } else if (pid > 0) {
+        } else if (pid > 0) { // 在父进程中执行
             // 托孤
             exit(0);
         }
@@ -223,7 +223,7 @@ Java_me_weishu_leoric_NativeLeoric_doDaemon(JNIEnv *env, jobject jobj,
         create_file_if_not_exist(indicator_daemon_path_child);
 
         set_process_name(env);
-
+// 这应试是一个重复着的反操作：实现两个(两类)文件的生存死亡通感
         do_daemon(env, jobj, indicator_self_path_child, indicator_daemon_path_child,
                   observer_self_path_child, observer_daemon_path_child);
         return;
@@ -232,7 +232,7 @@ Java_me_weishu_leoric_NativeLeoric_doDaemon(JNIEnv *env, jobject jobj,
     if (waitpid(pid, NULL, 0) != pid)
         printf("waitpid error\n");
 
-
+// 这应试是一个重复着的反操作：实现两个(两类)文件的生存死亡通感
     do_daemon(env, jobj, indicator_self_path, indicator_daemon_path, observer_self_path,
               observer_daemon_path);
 }

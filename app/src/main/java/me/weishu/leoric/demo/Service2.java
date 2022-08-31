@@ -51,8 +51,8 @@ public class Service2 extends Service{
 
         PendingIntent hangPendingIntent = PendingIntent.getActivity(this, 1001, hangIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        String CHANNEL_ID = "your_custom_id";//应用频道Id唯一值， 长度若太长可能会被截断，
-        String CHANNEL_NAME = "your_custom_name";//最长40个字符，太长会被截断
+        String CHANNEL_ID = "your_custom_id";    // 应用频道Id唯一值， 长度若太长可能会被截断，
+        String CHANNEL_NAME = "your_custom_name";// 最长40个字符，太长会被截断
         notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("通知Title")
                 .setContentText("通知Content")
@@ -61,7 +61,7 @@ public class Service2 extends Service{
                 .setAutoCancel(true)
                 .build();
 
-        //Android 8.0 以上需包添加渠道
+        // Android 8.0 以上需包添加渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
                     CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
